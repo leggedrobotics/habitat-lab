@@ -444,6 +444,7 @@ class HabitatBaselinesConfig(HabitatBaselinesBaseConfig):
     # If habitat_baselines.evaluate is true, the run will be in evaluation mode
     # replaces --run-type eval when true
     evaluate: bool = False
+    exp_name: str = "debug_ppo"
     trainer_name: str = "ppo"
     updater_name: str = "PPO"
     distrib_updater_name: str = "DDPPO"

@@ -29,6 +29,7 @@ from habitat.tasks.nav.nav import (
 from habitat.tasks.nav.object_nav_task import ObjectGoalSensor
 from habitat_baselines.common.baseline_registry import baseline_registry
 from habitat_baselines.rl.ddppo.policy import resnet
+from habitat_baselines.rl.ddppo.policy.dino import DINOv2Encoder
 from habitat_baselines.rl.ddppo.policy.running_mean_and_var import (
     RunningMeanAndVar,
 )
@@ -80,6 +81,7 @@ class PointNavResNetPolicy(NetPolicy):
             "se_resneXt101",
             "resnet50_clip_avgpool",
             "resnet50_clip_attnpool",
+            "dinov2_small"
         ], f"{backbone} backbone is not recognized."
 
         if policy_config is not None:
@@ -572,6 +574,15 @@ class PointNavResNetNet(Net):
                 self.visual_fc = nn.Sequential(
                     nn.Linear(
                         self.visual_encoder.output_shape[0], hidden_size
+                    ),
+                    nn.ReLU(True),
+                )
+        elif backbone == "dinov2_small":
+            self.visual_encoder = DINOv2Encoder()
+            if not self.visual_encoder.is_blind:
+                self.visual_fc = nn.Sequential(
+                    nn.Linear(
+                        self.visual_encoder.output_dim, hidden_size
                     ),
                     nn.ReLU(True),
                 )

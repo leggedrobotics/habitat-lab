@@ -21,12 +21,13 @@ habitat_baselines:
   total_num_steps: 75e6
   log_interval: 25
   num_checkpoints: 100
+  num_updates: -1
   # Force PyTorch to be single threaded as
   # this improves performance considerably
   force_torch_single_threaded: True
 
   eval:
-    video_option: [ ]
+    video_option: ["disk"]
     # Can be uncommented to generate videos.
     # video_option: ["disk", "tensorboard"]
 

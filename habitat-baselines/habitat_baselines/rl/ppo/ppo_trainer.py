@@ -65,6 +65,7 @@ from habitat_baselines.utils.info_dict import (
     extract_scalars_from_infos,
 )
 from habitat_baselines.utils.timing import g_timer
+import wandb
 
 
 @baseline_registry.register_trainer(name="ddppo")
@@ -338,7 +339,7 @@ class PPOTrainer(BaseRLTrainer):
         Returns:
             dict containing checkpoint info
         """
-        return torch.load(checkpoint_path, *args, **kwargs)
+        return torch.load(checkpoint_path, *args, **kwargs, weights_only=False)
 
     def _compute_actions_and_step_envs(self, buffer_index: int = 0):
         num_envs = self.envs.num_envs
@@ -638,6 +639,21 @@ class PPOTrainer(BaseRLTrainer):
                 for k, v in self._single_proc_infos.items():
                     logger.info(f" - {k}: {np.mean(v):.3f}")
 
+            # WandB logging
+            wandb.log(
+                {
+                    "reward": deltas["reward"] / deltas["count"],
+                    "steps": self.num_steps_done,
+                    "updates": self.num_updates_done,
+                    "fps": fps,
+                    **{f"metrics/{k}": v for k, v in metrics.items()},
+                    **{f"learner/{k}": v for k, v in losses.items()},
+                    **{f"perf/{k}": v.mean for k, v in g_timer.items()},
+                    **{f"infos/{k}": np.mean(v) for k, v in self._single_proc_infos.items()},
+                }
+            )
+
+
     def should_end_early(self, rollout_step) -> bool:
         if not self._is_distributed:
             return False
@@ -659,6 +675,16 @@ class PPOTrainer(BaseRLTrainer):
         Returns:
             None
         """
+
+        # TODO: Add date/time for output
+        output_dir = os.path.join(self.config.habitat_baselines.checkpoint_folder, self.config.habitat_baselines.exp_name)
+
+        wandb.init(
+            project="habitat-nav",
+            entity="geometric-foundational-model",
+            name=self.config.habitat_baselines.exp_name,
+            dir=output_dir,
+            )
 
         resume_state = load_resume_state(self.config)
         self._init_train(resume_state)
