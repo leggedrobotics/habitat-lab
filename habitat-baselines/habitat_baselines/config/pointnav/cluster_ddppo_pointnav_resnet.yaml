@@ -6,7 +6,7 @@ defaults:
   - _self_
 
 habitat_baselines:
-  exp_name: "Dino-RGB-ddppo-cluster"
+  exp_name: "Resn50-RGBD-ddppo-cluster"
   verbose: False
   trainer_name: "ddppo"
   torch_gpu_id: 0
@@ -76,7 +76,7 @@ habitat_baselines:
       reset_critic: True
 
       # Model parameters
-      backbone: dinov2_small
-      # backbone: resnet50
+      # backbone: dinov2_small
+      backbone: resnet50
       rnn_type: LSTM
       num_recurrent_layers: 2

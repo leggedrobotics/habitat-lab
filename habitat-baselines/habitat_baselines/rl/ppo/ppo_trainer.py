@@ -256,7 +256,7 @@ class PPOTrainer(BaseRLTrainer):
 
         self._agent = self._create_agent(resume_state)
         if self._is_distributed:
-            self._agent.init_distributed(find_unused_params=False)  # type: ignore
+            self._agent.init_distributed(find_unused_params=True)  # type: ignore
         self._agent.post_init()
 
         self._is_static_encoder = (
@@ -677,13 +677,14 @@ class PPOTrainer(BaseRLTrainer):
         """
 
         # TODO: Add date/time for output
-        output_dir = os.path.join(self.config.habitat_baselines.checkpoint_folder, self.config.habitat_baselines.exp_name)
+        output_dir = os.path.join(self.config.habitat_baselines.checkpoint_folder, "wandb")
 
-        wandb.init(
-            project="habitat-nav",
-            entity="geometric-foundational-model",
-            name=self.config.habitat_baselines.exp_name,
-            dir=output_dir,
+        if not torch.distributed.is_initialized() or torch.distributed.get_rank() == 0:
+            wandb.init(
+                project="habitat-nav",
+                entity="geometric-foundational-model",
+                name=self.config.habitat_baselines.exp_name,
+                dir=output_dir,
             )
 
         resume_state = load_resume_state(self.config)
