@@ -6,7 +6,7 @@ defaults:
   - _self_
 
 habitat_baselines:
-  exp_name: "Dino-RGB-ddppo"
+  exp_name: "debug_dino"
   verbose: False
   trainer_name: "ddppo"
   torch_gpu_id: 0
@@ -76,7 +76,10 @@ habitat_baselines:
       reset_critic: True
 
       # Model parameters
-      backbone: dinov2_small
+      backbone: dinov2_depth
+      ckpt_path: /home/patelm/Downloads/vits16_depth_aug_32GPU_data_a_webd/teacher_checkpoint.pth
+      config_path: /home/patelm/Downloads/vits16_depth_aug_32GPU_data_a_webd/config
+      # backbone: dinov2_small
       # backbone: resnet50
       rnn_type: LSTM
       num_recurrent_layers: 2

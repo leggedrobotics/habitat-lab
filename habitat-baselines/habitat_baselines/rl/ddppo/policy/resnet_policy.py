@@ -30,6 +30,7 @@ from habitat.tasks.nav.object_nav_task import ObjectGoalSensor
 from habitat_baselines.common.baseline_registry import baseline_registry
 from habitat_baselines.rl.ddppo.policy import resnet
 from habitat_baselines.rl.ddppo.policy.dino import DINOv2Encoder
+from habitat_baselines.rl.ddppo.policy.dino_depth import DINOv2DepthEncoder
 from habitat_baselines.rl.ddppo.policy.running_mean_and_var import (
     RunningMeanAndVar,
 )
@@ -64,6 +65,7 @@ class PointNavResNetPolicy(NetPolicy):
         policy_config: "DictConfig" = None,
         aux_loss_config: Optional["DictConfig"] = None,
         fuse_keys: Optional[List[str]] = None,
+        ddppo_config: Optional["DictConfig"] = None,
         **kwargs,
     ):
         """
@@ -81,7 +83,8 @@ class PointNavResNetPolicy(NetPolicy):
             "se_resneXt101",
             "resnet50_clip_avgpool",
             "resnet50_clip_attnpool",
-            "dinov2_small"
+            "dinov2_small",
+            "dinov2_depth"
         ], f"{backbone} backbone is not recognized."
 
         if policy_config is not None:
@@ -108,6 +111,7 @@ class PointNavResNetPolicy(NetPolicy):
                 fuse_keys=fuse_keys,
                 force_blind_policy=force_blind_policy,
                 discrete_actions=discrete_actions,
+                ddppo_config=ddppo_config,
             ),
             action_space=action_space,
             policy_config=policy_config,
@@ -161,6 +165,7 @@ class PointNavResNetPolicy(NetPolicy):
             policy_config=config.habitat_baselines.rl.policy[agent_name],
             aux_loss_config=config.habitat_baselines.rl.auxiliary_losses,
             fuse_keys=None,
+            ddppo_config=config.habitat_baselines.rl.ddppo,
         )
 
 
@@ -419,6 +424,7 @@ class PointNavResNetNet(Net):
         fuse_keys: Optional[List[str]],
         force_blind_policy: bool = False,
         discrete_actions: bool = True,
+        ddppo_config: Optional["DictConfig"] = None,
     ):
         super().__init__()
         self.prev_action_embedding: nn.Module
@@ -584,6 +590,15 @@ class PointNavResNetNet(Net):
                 )
         elif backbone == "dinov2_small":
             self.visual_encoder = DINOv2Encoder()
+            if not self.visual_encoder.is_blind:
+                self.visual_fc = nn.Sequential(
+                    nn.Linear(
+                        self.visual_encoder.output_dim, hidden_size
+                    ),
+                    nn.ReLU(True),
+                )
+        elif backbone == "dinov2_depth":
+            self.visual_encoder = DINOv2DepthEncoder(cfg_path=ddppo_config.config_path, ckpt_path=ddppo_config.ckpt_path)
             if not self.visual_encoder.is_blind:
                 self.visual_fc = nn.Sequential(
                     nn.Linear(

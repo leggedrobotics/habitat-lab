@@ -346,6 +346,8 @@ class DDPPOConfig(HabitatBaselinesBaseConfig):
     rnn_type: str = "GRU"
     num_recurrent_layers: int = 1
     backbone: str = "resnet18"
+    ckpt_path: str = "" # This is only for Dino-Depth
+    config_path: str = "" # This is only for Dino-Depth
     # Visual encoder backbone
     pretrained_weights: str = "data/ddppo-models/gibson-2plus-resnet50.pth"
     # Initialize with pretrained weights
